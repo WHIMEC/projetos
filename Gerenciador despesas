@@ -1,0 +1,87 @@
+import csv
+from datetime import datetime
+
+ARQUIVO = "despesas.csv"
+
+def carregar_despesas():
+    despesas = []
+    try:
+        with open(ARQUIVO, mode='r', newline='', encoding='utf-8') as f:
+            leitor = csv.DictReader(f)
+            for linha in leitor:
+                linha['valor'] = float(linha['valor'])
+                despesas.append(linha)
+    except FileNotFoundError:
+        pass
+    return despesas
+
+def salvar_despesas(despesas):
+    with open(ARQUIVO, mode='w', newline='', encoding='utf-8') as f:
+        campos = ['data', 'categoria', 'descricao', 'valor']
+        escritor = csv.DictWriter(f, fieldnames=campos)
+        escritor.writeheader()
+        for d in despesas:
+            escritor.writerow(d)
+
+def adicionar_despesa(despesas):
+    try:
+        valor = float(input("Valor da despesa: R$ "))
+        categoria = input("Categoria (ex: alimentação, transporte): ").strip()
+        descricao = input("Descrição: ").strip()
+        data = datetime.now().strftime("%d/%m/%Y")
+        despesas.append({'data': data, 'categoria': categoria, 'descricao': descricao, 'valor': valor})
+        salvar_despesas(despesas)
+        print("Despesa adicionada com sucesso!\n")
+    except ValueError:
+        print("Erro: Valor inválido.\n")
+
+def exibir_despesas(despesas):
+    if not despesas:
+        print("Nenhuma despesa registrada.\n")
+        return
+    print("\nDespesas registradas:")
+    for d in despesas:
+        print(f"{d['data']} - {d['categoria']} - {d['descricao']} - R$ {d['valor']:.2f}")
+    print()
+
+def exibir_total(despesas):
+    total = sum(d['valor'] for d in despesas)
+    print(f"\nTotal gasto: R$ {total:.2f}\n")
+
+def filtrar_por_categoria(despesas):
+    categoria = input("Categoria para filtrar: ").strip().lower()
+    filtradas = [d for d in despesas if d['categoria'].lower() == categoria]
+    if not filtradas:
+        print("Nenhuma despesa nessa categoria.\n")
+        return
+    for d in filtradas:
+        print(f"{d['data']} - {d['descricao']} - R$ {d['valor']:.2f}")
+    print()
+
+def menu():
+    despesas = carregar_despesas()
+    while True:
+        print("== Gerenciador de Despesas ==")
+        print("1. Adicionar despesa")
+        print("2. Ver despesas")
+        print("3. Ver total gasto")
+        print("4. Filtrar por categoria")
+        print("5. Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == '1':
+            adicionar_despesa(despesas)
+        elif opcao == '2':
+            exibir_despesas(despesas)
+        elif opcao == '3':
+            exibir_total(despesas)
+        elif opcao == '4':
+            filtrar_por_categoria(despesas)
+        elif opcao == '5':
+            print("Saindo...")
+            break
+        else:
+            print("Opção inválida!\n")
+
+if __name__ == "__main__":
+    menu()
